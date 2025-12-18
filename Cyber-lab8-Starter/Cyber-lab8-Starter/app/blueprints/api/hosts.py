@@ -120,6 +120,45 @@ def fetch_logs(host_id):
         db.session.add(log_source)
         db.session.commit()
     
+
+    if (host.os_type == 'LINUX'):
+        ssh_key = current_app.config['SSH_KEY_FILE']
+        ssh_user = current_app.config['SSH_DEFAULT_USER']
+        ssh_port = current_app.config['SSH_DEFAULT_PORT']
+        
+        try:
+            with RemoteClient(host.ip_address, ssh_user, ssh_port, ssh_key) as client:
+                raw_logs = LogCollector.get_linux_logs(client)
+        except:
+            print("Kurwea")
+    else:
+        try:
+        # Tworzymy klienta (lokalny subprocess)
+            with WinClient() as client:
+                print("🔄 Pobieranie zdarzeń z Dziennika Zdarzeń...")
+                logs = LogCollector.get_windows_logs(client)
+
+                print(f"\n📊 Znaleziono {len(logs)} nieudanych logowań.\n")
+
+                if not logs:
+                    print("💡 Brak zdarzeń w dzienniku.")
+                    print("   Aby przetestować, spróbuj zalogować się do tego komputera")
+                    print("   z innego urządzenia podając złe hasło (SMB/RDP).")
+                    return
+
+                print(f"{'TIMESTAMP':<20} | {'TYP':<18} | {'IP':<15} | {'USER'}")
+                print("-" * 75)
+                for log in logs:
+                    ts = str(log['timestamp'])
+                    print(f"{ts:<20} | {log['alert_type']:<18} | {log['source_ip']:<15} | {log['user']}")
+
+        except Exception as e:
+            print(f"❌ Błąd: {e}")
+            # import traceback
+            # traceback.print_exc()
+        # Na razie zwracamy błąd 501 (Not Implemented)
+    return jsonify({"message": "Funkcja API nie jest jeszcze gotowa", "alerts": 0}), 501
+
     # TODO: ZADANIE 2 - INTEGRACJA POBIERANIA LOGÓW
     # Ten endpoint obecnie nic nie robi. Twoim zadaniem jest jego uzupełnienie.
     # Wzoruj się na plikach 'test_real_ssh_logs.py' oraz 'test_windows_logs.py'.
