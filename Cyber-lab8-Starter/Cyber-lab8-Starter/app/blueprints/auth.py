@@ -11,28 +11,27 @@ def login():
         return redirect(url_for('ui.config'))
 
     form = LoginForm()
-    form = LoginForm()
 
     if form.validate_on_submit():
         # TODO: ZADANIE 1 - LOGOWANIE
         # 1. Pobierz użytkownika z bazy danych na podstawie form.username.data
-        user = form.username.data  
+        user = User.query.filter_by(username=form.username.data).first()
         # 2. Sprawdź hasło używając metody user.check_password(form.password.data)
-        password =  user.check_password(form.password.data)
+        if user and user.check_password(form.password.data):
         # 3. Jeśli poprawne:
         #    - użyj funkcji login_user(user)
         #    - wyświetl flash('Zalogowano pomyślnie!', 'success')
         #    - przekieruj do ui.config
-        if (login_user(user) == True):
-            flash('Zalogowano pomyślnie!','success')
+            login_user(user)
+            flash('Zalogowano pomyślnie', 'success')
             return redirect(url_for('ui.config'))
+
+
         # 4. Jeśli błędne:
         #    - wyświetl flash('Błąd logowania', 'danger')
-        else:
-            flash('Błąd logowania', 'danger')
 
-        flash('Mechanizm logowania nie jest jeszcze zaimplementowany!', 'warning')
-        # pass
+        else:
+            flash('Błąd logowania: nieprawidłowy login lub hasło', 'danger')
 
     return render_template('login.html', form=form)
 

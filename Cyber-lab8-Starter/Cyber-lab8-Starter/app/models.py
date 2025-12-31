@@ -15,16 +15,16 @@ class User(UserMixin, db.Model):
         # Zaimplementuj hashowanie hasła przy użyciu generate_password_hash.
         # Wynik zapisz do pola self.password_hash.
         self.password_hash = generate_password_hash(password)
-        pass
+        
     
     def check_password(self, password):
         # TODO: ZADANIE 1 - BEZPIECZEŃSTWO
         # Zaimplementuj weryfikację hasła przy użyciu check_password_hash.
         # Metoda ma zwracać True jeśli hasło jest poprawne, False w przeciwnym razie.
-        if self.password_hash == check_password_hash(password):
-            return True
+        if not self.password_hash:
+            return False
         # TYMCZASOWO: Zwracamy True, żeby nie blokować testów (do zmiany!)
-        return False
+        return check_password_hash(self.password_hash, password)
     
 # === MODELE SYSTEMOWE (GOTOWE) ===
 class Host(db.Model):
