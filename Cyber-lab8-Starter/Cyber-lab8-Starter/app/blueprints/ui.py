@@ -9,6 +9,7 @@ def index():
     # To jest teraz Dashboard Monitoringu
     return render_template('index.html')
 
+@login_required
 @ui_bp.route('/config')
 def config():
     # To jest nowa strona administracyjna

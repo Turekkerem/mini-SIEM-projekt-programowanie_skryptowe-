@@ -22,8 +22,15 @@ def login():
         #    - przekieruj do ui.config
         # 4. Jeśli błędne:
         #    - wyświetl flash('Błąd logowania', 'danger')
+        user = User.query.filter_by(username=form.username.data).first()
         
-        flash('Mechanizm logowania nie jest jeszcze zaimplementowany!', 'warning')
+        if user and user.check_password(form.password.data):
+            login_user(user)
+            flash('Zalogowano pomyślnie!', 'success')
+            return redirect(url_for('ui.config'))
+        else:
+            flash('Błąd logowania. Sprawdź login i hasło.', 'danger')
+        #flash('Mechanizm logowania nie jest jeszcze zaimplementowany!', 'warning')
         # pass
 
     return render_template('login.html', form=form)

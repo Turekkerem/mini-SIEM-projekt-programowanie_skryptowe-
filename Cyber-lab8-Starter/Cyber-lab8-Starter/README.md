@@ -61,11 +61,11 @@ Legenda:
 │   ├── __init__.py             # ✅ Inicjalizacja aplikacji
 │   ├── extensions.py           # ✅ Konfiguracja db, login_manager
 │   ├── forms.py                # ✅ Formularze WTF
-│   ├── models.py               # 🛠️ Modele bazy (BRAK hashowania haseł!)
+│   ├── models.py               # 🛠️ Modele bazy (BRAK hashowania haseł!) ->coś zrobiłem już
 │   │
 │   ├── blueprints/
 │   │   ├── auth.py             # 🛠️ Logowanie (Logika niezaimplementowana)
-│   │   ├── ui.py               # 🛠️ Widoki HTML (LUKA: brak @login_required)
+│   │   ├── ui.py               # 🛠️ Widoki HTML (LUKA: brak @login_required) -> chyba to już dodałem
 │   │   └── api/
 │   │       └── hosts.py        # 🛠️ GŁÓWNE API (Brak logiki logów i IP)
 │   │
