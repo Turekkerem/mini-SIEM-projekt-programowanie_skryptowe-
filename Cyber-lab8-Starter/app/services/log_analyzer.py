@@ -38,39 +38,53 @@ class LogAnalyzer:
         for index, row in threats.iterrows():
             ip = row['source_ip']
             user = row.get('user', 'unknown')
-            
+            severity = 'WARNING'
+            message = row['message']
             # Ignorujemy lokalne
-            if ip in ['LOCAL', 'LOCAL_CONSOLE', '127.0.0.1', '::1']:
-                continue
+            # if ip in ['LOCAL', 'LOCAL_CONSOLE', '127.0.0.1', '::1']:
+            #     continue
 
             # =======================================================
             # TODO: ZADANIE 3 - LOGIKA SIEM (THREAT INTELLIGENCE)
             # =======================================================
-            
+
             # Twoim zadaniem jest ocena powagi incydentu w oparciu o bazę IPRegistry.
-            
+
             # 1. Sprawdź, czy adres IP (zmienna 'ip') znajduje się w tabeli IPRegistry.
+
+            ip_entry = IPRegistry.query.filter_by(ip_address=ip).first()
+
             # 2. Jeśli NIE MA go w bazie -> Dodaj go ze statusem 'UNKNOWN' i obecnym czasem (last_seen).
+
+            if not ip_entry:
+                ip_entry = IPRegistry(ip_address=ip, status='UNKNOWN', last_seen=datetime.now(timezone.utc))
             # 3. Jeśli JEST w bazie -> Zaktualizuj mu last_seen.
-            
+            else:
+                ip_entry.last_seen = datetime.now(timezone.utc)
             # 4. Ustal poziom alertu (severity) i treść wiadomości (message):
             #    - Domyślny poziom: 'WARNING'.
             #    - Jeśli IP ma status 'BANNED' -> Zmień poziom na 'CRITICAL' i dopisz to w treści.
+            if ip_entry.status == 'BANNED':
+                severity = 'CRITICAL'
+                message = f"ATAK Z ZABLOKOWANEGO IP {ip}. {row['message']}"
             #    - Jeśli IP ma status 'TRUSTED' -> Możesz pominąć alert (continue) lub ustawić 'INFO'.
-            
+            if ip_entry.status == 'TRUSTED':
+                continue
+
             # 5. Stwórz obiekt Alert:
-            #    new_alert = Alert(
-            #        host_id=host_id,
-            #        alert_type=row['alert_type'],
-            #        source_ip=ip,
-            #        severity=severity,  <-- To musi być dynamiczne
-            #        message=message,    <-- To też
-            #        timestamp=datetime.now(timezone.utc)
-            #    )
-            
+            new_alert = Alert(
+                host_id=host_id,
+                alert_type=row['alert_type'],
+                source_ip=ip,
+                severity=severity,
+                message=message,
+                timestamp=datetime.now(timezone.utc)
+            )
+
+
             # 6. Dodaj do sesji (db.session.add) i zwiększ licznik alerts_created.
-            
-            pass # Usuń to po implementacji
+            db.session.add(new_alert)
+            alerts_created += 1
 
         # Zatwierdzenie zmian w bazie
         db.session.commit()

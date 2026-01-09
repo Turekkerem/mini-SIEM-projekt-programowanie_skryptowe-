@@ -3,6 +3,8 @@ from flask import Blueprint, jsonify, request, current_app
 from datetime import timezone, datetime
 import os
 
+from flask_login import login_required
+
 from app.models import Host, LogSource, LogArchive, Alert, IPRegistry
 from app.services.remote_client import RemoteClient
 from app.services.win_client import WinClient
@@ -123,47 +125,111 @@ def fetch_logs(host_id):
     # TODO: ZADANIE 2 - INTEGRACJA POBIERANIA LOGÓW
     # Ten endpoint obecnie nic nie robi. Twoim zadaniem jest jego uzupełnienie.
     # Wzoruj się na plikach 'test_real_ssh_logs.py' oraz 'test_windows_logs.py'.
-    
+    logs = []
     # KROKI DO WYKONANIA:
-    # 1. Sprawdź host.os_type (LINUX vs WINDOWS).
+    try:
+        # 1. Sprawdź host.os_type (LINUX vs WINDOWS).
+        if host.os_type != "WINDOWS":
+            ssh_user = current_app.config.get("SSH_DEFAULT_USER","vagrant")
+            ssh_port = current_app.config.get("SSH_DEFAULT_PORT","2222")
+            ssh_key = current_app.config.get("SSH_KEY_FILE")
+
+            with RemoteClient(host=host.ip_address, user=ssh_user, port=ssh_port, key_file=ssh_key) as client:
+                logs = LogCollector.get_linux_logs(client, last_fetch_time=log_source.last_fetch)
+
+        else:
+            with WinClient() as client:
+                logs = LogCollector.get_windows_logs(client, last_fetch_time=log_source.last_fetch)
+
+        if not logs:
+            return jsonify({"message": "Brak nowych zdarzeń w dzienniku", "alerts": 0}), 200
+
     # 2. Użyj odpowiedniego klienta (RemoteClient lub WinClient).
     # 3. Wywołaj LogCollector.get_linux_logs (lub windows) aby pobrać listę zdarzeń.
     # 4. WAŻNE: Zapisz pobrane logi do pliku Parquet używając DataManager.save_logs_to_parquet().
     #    Metoda ta zwróci nazwę pliku (filename).
-    # 5. Zaktualizuj log_source.last_fetch na bieżący czas.
-    # 6. Dodaj wpis do LogArchive (historia pobrań).
-    # 7. Wywołaj LogAnalyzer.analyze_parquet(filename, host.id) aby wykryć zagrożenia.
-    
-    # Na razie zwracamy błąd 501 (Not Implemented)
-    return jsonify({"message": "Funkcja API nie jest jeszcze gotowa", "alerts": 0}), 501
+        filename, count = DataManager.save_logs_to_parquet(logs, host.id)
+        if not filename:
+            return jsonify({"error": "Błąd generowania pliku Parquet"}), 500
 
+    # 5. Zaktualizuj log_source.last_fetch na bieżący czas.
+        log_source.last_fetch = datetime.now(timezone.utc)
+
+    # 6. Dodaj wpis do LogArchive (historia pobrań).
+        new_archive = LogArchive(
+            host_id=host.id,
+            filename=filename,
+            record_count=count,
+            timestamp=datetime.now(timezone.utc),
+        )
+        db.session.add(new_archive)
+
+    # 7. Wywołaj LogAnalyzer.analyze_parquet(filename, host.id) aby wykryć zagrożenia.
+        alerts_found = LogAnalyzer.analyze_parquet(filename, host.id)
+        db.session.commit()
+    # Na razie zwracamy błąd 501 (Not Implemented)
+        return jsonify({
+            "message": f"Pomyślnie pobrano {count} logów ",
+            "alerts": alerts_found,
+            "filename": filename
+        }), 200
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": f"Błąd krytyczny pobierania: {str(e)}"}), 500
 
 # TODO: ZADANIE 3 - API DLA REJESTRU IP I ALERTÓW
 # Poniższe endpointy są zakomentowane. Musisz je odblokować i ewentualnie uzupełnić,
 # aby Panel Admina mógł zarządzać adresami IP, a Dashboard wyświetlać alerty.
 
-# @api_bp.route("/ips", methods=["GET"])
-# def get_ips():
-#     ips = IPRegistry.query.order_by(IPRegistry.last_seen.desc()).all()
-#     # Zwróć listę JSON
-#     pass
+@api_bp.route("/ips", methods=["GET"])
+@login_required
+def get_ips():
+    ips = IPRegistry.query.order_by(IPRegistry.last_seen.desc()).all()
+    return jsonify([{
+        "id": i.id,
+        "ip_address": i.ip_address,
+        "status": i.status,
+        "last_seen": i.last_seen.strftime("%Y-%m-%d %H:%M:%S"),
+    }for i in ips])
 
-# @api_bp.route("/ips", methods=["POST"])
-# def add_ip():
-#     # Dodaj nowe IP (pamiętaj o commit)
-#     pass
+@api_bp.route("/ips", methods=["POST"])
+@login_required
+def add_ip():
+    data = request.get_json()
+    if not data or 'ip_address' not in data:
+        return jsonify({"error": "Bad request"}), 400
 
-# @api_bp.route("/ips/<int:ip_id>", methods=["PUT"])
-# def update_ip(ip_id):
-#     # Edycja statusu
-#     pass
+    new_ip = IPRegistry(ip_address=data['ip_address'], status=data.get('status','UNKNOWN'))
+    db.session.add(new_ip)
+    # Dodaj nowe IP (pamiętaj o commit)
+    db.session.commit()
+    return jsonify({"message": "Dodano IP do rejestru"}), 201
 
-# @api_bp.route("/ips/<int:ip_id>", methods=["DELETE"])
-# def delete_ip(ip_id):
-#     # Usuwanie
-#     pass
+@api_bp.route("/ips/<int:ip_id>", methods=["PUT"])
+@login_required
+def update_ip(ip_id):
+    ip_entry = IPRegistry.query.get_or_404(ip_id)
+    data = request.get_json()
 
-# @api_bp.route("/alerts", methods=["GET"])
-# def get_recent_alerts():
-#     # Zwróć 20 ostatnich alertów posortowanych malejąco po dacie
-#     pass
+    if 'status' in data:
+        ip_entry.status = data['status']
+    if 'ip_address' in data:
+        ip_entry.ip_address = data['ip_address']
+
+    db.session.commit()
+    return jsonify({"message": "Dodano IP do rejestru"}), 200
+
+
+@api_bp.route("/ips/<int:ip_id>", methods=["DELETE"])
+@login_required
+def delete_ip(ip_id):
+    ip_entry = IPRegistry.query.get_or_404(ip_id)
+    db.session.delete(ip_entry)
+    db.session.commit()
+    return jsonify({"message": "Usunięto IP z rejestru"}), 200
+
+@api_bp.route("/alerts", methods=["GET"])
+@login_required
+def get_recent_alerts():
+    alerts = Alert.query.order_by(Alert.timestamp.desc()).limit(20).all()
+    return jsonify([a.to_dict() for a in alerts])

@@ -64,25 +64,25 @@ Legenda:
 │   ├── models.py               # 🛠️ Modele bazy (BRAK hashowania haseł!) ->coś zrobiłem już
 │   │
 │   ├── blueprints/
-│   │   ├── auth.py             # 🛠️ Logowanie (Logika niezaimplementowana)
-│   │   ├── ui.py               # 🛠️ Widoki HTML (LUKA: brak @login_required) -> chyba to już dodałem
+│   │   ├── auth.py             # 🛠️ Logowanie (Logika niezaimplementowana) -> Zrobione
+│   │   ├── ui.py               # 🛠️ Widoki HTML (LUKA: brak @login_required) -> chyba to już dodałem -> Zrobione
 │   │   └── api/
-│   │       └── hosts.py        # 🛠️ GŁÓWNE API (Brak logiki logów i IP)
+│   │       └── hosts.py        # 🛠️ GŁÓWNE API (Brak logiki logów i IP) -> zrobione
 │   │
 │   ├── services/
 │   │   ├── data_manager.py     # ✅ GOTOWE: Zapis/Odczyt Parquet
 │   │   ├── log_collector.py    # ✅ GOTOWE: Parsowanie logów (Regex/XML)
 │   │   ├── remote_client.py    # ✅ GOTOWE: Klient SSH
 │   │   ├── win_client.py       # ✅ GOTOWE: Klient PowerShell (lokalny)
-│   │   └── log_analyzer.py     # 🛠️ Logika SIEM (Brak Threat Intel)
+│   │   └── log_analyzer.py     # 🛠️ Logika SIEM (Brak Threat Intel) -> Zrobione
 │   │
 │   ├── static/
 │   │   ├── css/
 │   │   │   └── style.css       # ✅ Style
 │   │   └── js/
-│   │       ├── admin.js        # 🛠️ Panel Admina (Sekcja IP zakomentowana)
-│   │       ├── api.js          # 🛠️ Fetch API (Brak funkcji dla IP/Alertów)
-│   │       ├── dashboard.js    # 🛠️ Dashboard (Zepsute pobieranie alertów)
+│   │       ├── admin.js        # 🛠️ Panel Admina (Sekcja IP zakomentowana) -> zrobione
+│   │       ├── api.js          # 🛠️ Fetch API (Brak funkcji dla IP/Alertów) -> zrobione
+│   │       ├── dashboard.js    # 🛠️ Dashboard (Zepsute pobieranie alertów) -> Zrobione
 │   │       ├── dom.js          # ✅ Helpery DOM
 │   │       └── main.js         # ✅ Router JS
 │   │
