@@ -28,7 +28,7 @@ function initDarkMode() {
 
 
 function main() {
-    initDarkMode();
+    
     const path = window.location.pathname;
 
     if (path === '/' || path === '/index') {
