@@ -41,8 +41,8 @@ class LogAnalyzer:
             severity = 'WARNING'
             message = row['message']
             # Ignorujemy lokalne
-            # if ip in ['LOCAL', 'LOCAL_CONSOLE', '127.0.0.1', '::1']:
-            #     continue
+            if ip in ['LOCAL', 'LOCAL_CONSOLE', '127.0.0.1', '::1']:
+                continue
 
             # =======================================================
             # TODO: ZADANIE 3 - LOGIKA SIEM (THREAT INTELLIGENCE)
@@ -69,7 +69,9 @@ class LogAnalyzer:
                 message = f"ATAK Z ZABLOKOWANEGO IP {ip}. {row['message']}"
             #    - Jeśli IP ma status 'TRUSTED' -> Możesz pominąć alert (continue) lub ustawić 'INFO'.
             if ip_entry.status == 'TRUSTED':
-                continue
+                severity = 'INFO'
+                message=f'WYKRYTO NIEUDANĄ PRÓBĘ LOGOWANIA Z ZAUFANEGO ADRESU IP {ip}. {row['message']}'
+                #continue
 
             # 5. Stwórz obiekt Alert:
             new_alert = Alert(
