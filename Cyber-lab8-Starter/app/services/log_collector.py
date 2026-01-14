@@ -196,4 +196,5 @@ class LogCollector:
             print(f"Error collecting Windows logs: {e}")
             return []
 
+
         return logs
