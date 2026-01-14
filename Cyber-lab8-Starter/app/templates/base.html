@@ -25,6 +25,10 @@
               <a class="nav-link" href="{{ url_for('ui.index') }}">Dashboard</a>
           </li>
           
+              <button id="darkModeBtn" class="btn btn-outline-light btn-sm ms-3 order-lg-last">
+                <i class="bi bi-moon-stars"></i> Tryb ciemny
+              </button>
+          
           {% if current_user.is_authenticated %}
               <li class="nav-item">
                   <a class="nav-link" href="{{ url_for('ui.config') }}">Konfiguracja</a>
