@@ -80,7 +80,7 @@ class LogAnalyzer:
                 source_ip=ip,
                 severity=severity,
                 message=message,
-                timestamp=datetime.now(timezone.utc)
+                timestamp=row.get('timestamp')
             )
 
 
