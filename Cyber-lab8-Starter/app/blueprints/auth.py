@@ -2,13 +2,34 @@ from flask import Blueprint, render_template, redirect, url_for, flash
 from flask_login import login_user, logout_user, login_required, current_user
 from app.models import User
 from app.forms import LoginForm
+from functools import wraps
+from flask import abort
+
+
+def admin_required(f):
+    @wraps(f) # Dekorator zachowujący informacje o funkcji oryginalnej f
+    def decorated_function(*args, **kwargs):
+        # Najpierw sprawdzamy czy zalogowany, potem czy ma rolę admin
+        if not current_user.is_authenticated or current_user.role != 'admin':
+            abort(403) # Błąd 403 Forbidden
+        return f(*args, **kwargs)
+    return decorated_function
+
+
+
+
+
+
 
 auth_bp = Blueprint('auth', __name__)
 
 @auth_bp.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('ui.config'))
+        if current_user.role == "admin":
+            return redirect(url_for('ui.config'))
+        else:
+            return redirect(url_for('ui.index'))
 
     form = LoginForm()
 
@@ -27,7 +48,10 @@ def login():
         if user and user.check_password(form.password.data):
             login_user(user)
             flash('Zalogowano pomyślnie!', 'success')
-            return redirect(url_for('ui.config'))
+            if user.role == "admin":
+                return redirect(url_for('ui.config'))
+            else:
+                return redirect(url_for('ui.index'))
         else:
             flash('Błąd logowania. Sprawdź login i hasło.', 'danger')
         #flash('Mechanizm logowania nie jest jeszcze zaimplementowany!', 'warning')
