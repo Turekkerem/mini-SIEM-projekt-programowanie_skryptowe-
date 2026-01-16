@@ -112,6 +112,7 @@ def get_windows_info(host_id):
 # ===================================================================
 
 @api_bp.route("/hosts/<int:host_id>/logs", methods=["POST"])
+@login_required
 def fetch_logs(host_id):
     host = Host.query.get_or_404(host_id)
     
