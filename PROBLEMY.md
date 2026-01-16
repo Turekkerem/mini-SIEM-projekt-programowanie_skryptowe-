@@ -35,7 +35,6 @@ Poniższa sekcja opisuje napotkane problemy techniczne, ich obecny status oraz z
             [...]
 
            ```
-        2. **Deduplikacja przy zapisie (Backend):** Przed zapisem sprawdź, czy IP już istnieje w DataFrame i nadpisz go zamiast dodawać nowy wiersz.
 
 ### 4. Środowisko Wirtualne (Vagrant)
 - **Status:** ✅ **Naprawiony** (Zmiana podejścia)
@@ -46,3 +45,6 @@ Poniższa sekcja opisuje napotkane problemy techniczne, ich obecny status oraz z
 - **Status:** ✅ **Naprawiony**
 - **Opis:** Kod odpowiedzialny za tryb ciemny w `main.js` był wykonywany w sposób blokujący, co powodowało, że strona nie renderowała się poprawnie do momentu zakończenia skryptu.
 - **Rozwiązanie:** Zmodyfikowano sposób ładowania skryptu/obsługi zdarzeń, dzięki czemu `dark_mode` działa płynnie i nie zamraża interfejsu.
+### 6. Odpalenie Powershella jako admina
+- **Status:** ✅ **Naprawiony**
+- **Opis:** Mieliśmy sytuację w której siedzieliśmy około 40 minut i sprawdzaliśmy czemu nie ma pobieranych logów -  w konsoli pisało że błąd "PS Error:" , dopiero potem domyśliliśmy się że aby otworyć dziennik zdarzeń Security potrzeba uprawnień Administratora. *Dla usprawiedliwienia była godzina 1:30 - spokojnie ,nie wczoraj w nocy a 4 dni temu*
