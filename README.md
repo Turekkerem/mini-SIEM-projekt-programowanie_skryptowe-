@@ -16,18 +16,10 @@ Pliki znajdujące się w głównym katalogu projektu. Odpowiadają za uruchamian
 
 ### `config.py`
 **Opis:** Klasa przechowująca ustawienia aplikacji.
-*   **`SECRET_KEY`**: Służy do kryptograficznego podpisywania sesji (niezbędne do logowania) oraz ochrony formularzy (CSRF).
 *   **`SQLALCHEMY_DATABASE_URI`**: Wskazuje lokalizację pliku bazy danych SQLite (domyślnie `instance/lab7.db`).
 *   **`STORAGE_FOLDER`**: Ścieżka do folderu `storage/`, gdzie zapisywane są surowe logi w formacie Parquet.
 *   **`SSH_...`**: Domyślne dane uwierzytelniające (user/pass/key) używane do łączenia się z serwerami Linux.
 
-### `init_db.py`
-**Opis:** Skrypt narzędziowy do pierwszej konfiguracji bazy danych.
-*   **`create_users()`**:
-    1.  Tworzy strukturę tabel (`db.create_all()`).
-    2.  Sprawdza, czy istnieją konta `admin` i `user`.
-    3.  Jeśli nie – tworzy je, bezpiecznie haszując hasła.
-*   **Zastosowanie:** Uruchamiany jednorazowo (`python init_db.py`) przed pierwszym startem aplikacji lub po usunięciu bazy.
 
 ---
 
@@ -55,7 +47,7 @@ Status pobierania logów dla danego hosta.
 ### Klasa `Alert`
 Tabela incydentów bezpieczeństwa (wynik analizy SIEM).
 *   **`severity`**: Poziom zagrożenia (`INFO`, `WARNING`, `CRITICAL`).
-*   **`message`**: Opis ataku (np. "Wykryto atak Brute Force z adresu IP...").
+*   **`message`**.
 
 ### Klasa `IPRegistry` (Threat Intel)
 Baza reputacji adresów IP.
@@ -152,14 +144,3 @@ Logika panelu administratora (`config.html`).
 *   Obsługuje okna modalne (wyskakujące okienka edycji).
 
 ---
-
-## 🧪 6. Skrypty Testowe
-
-Narzędzia do debugowania poza aplikacją webową.
-
-### `test_real_ssh_logs.py`
-*   Służy do testowania połączenia SSH i poprawności wyrażeń regularnych (Regex) bez uruchamiania serwera Flask.
-*   Przydatny, gdy funkcja "Logi" w panelu nie zwraca wyników.
-
-### `test_windows_logs.py`
-*   Służy do sprawdzenia, czy Python ma uprawnienia do odczytu Dziennika Zdarzeń Windows (wymaga uruchomienia jako Administrator).
