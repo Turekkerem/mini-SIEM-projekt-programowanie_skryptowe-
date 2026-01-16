@@ -28,7 +28,7 @@ class LogAnalyzer:
         # 2. Filtrowanie: Interesują nas tylko ataki
         attack_pattern = ['FAILED_LOGIN', 'INVALID_USER', 'WIN_FAILED_LOGIN']
         threats = df[df['alert_type'].isin(attack_pattern)]
-        
+        threats = threats.drop_duplicates(subset=['timestamp', 'source_ip', 'alert_type'])
         if threats.empty:
             return 0
 
@@ -44,6 +44,18 @@ class LogAnalyzer:
             if ip in ['LOCAL', 'LOCAL_CONSOLE', '127.0.0.1', '::1']:
                 continue
 
+
+
+            existing_alert = Alert.query.filter_by(
+                host_id=host_id,
+                source_ip=ip,
+                alert_type=row['alert_type'],
+                timestamp=row.get('timestamp')
+            ).first()
+
+            if existing_alert:
+                # Jeśli alert już jest w bazie, pomijamy ten obrót pętli
+                continue
             # =======================================================
             # TODO: ZADANIE 3 - LOGIKA SIEM (THREAT INTELLIGENCE)
             # =======================================================
