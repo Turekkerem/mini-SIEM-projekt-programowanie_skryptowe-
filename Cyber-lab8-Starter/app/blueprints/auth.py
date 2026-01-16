@@ -7,11 +7,11 @@ from flask import abort
 
 
 def admin_required(f):
-    @wraps(f) # Dekorator zachowujący informacje o funkcji oryginalnej f
+    @wraps(f)
     def decorated_function(*args, **kwargs):
-        # Najpierw sprawdzamy czy zalogowany, potem czy ma rolę admin
+        
         if not current_user.is_authenticated or current_user.role != 'admin':
-            abort(403) # Błąd 403 Forbidden
+            abort(403)
         return f(*args, **kwargs)
     return decorated_function
 
